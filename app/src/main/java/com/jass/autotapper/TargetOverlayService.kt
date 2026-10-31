@@ -39,11 +39,11 @@ class TargetOverlayService : Service() {
         v.setOnTouchListener { _, e ->
             when (e.action) {
                 MotionEvent.ACTION_DOWN -> { sx = e.rawX.toInt(); sy = e.rawY.toInt(); ox = p.x; oy = p.y; true }
-                MotionEvent.ACTION_MOVE -> { p.x = ox + e.rawX.toInt() - sx; p.y = oy + e.rawY.toInt() - sy; wm.updateViewLayout(v, p); true }
+                MotionEvent.ACTION_MOVE -> { p.x = ox + e.rawX.toInt() - sx; p.y = oy + e.rawY.toInt() - sy; wm.updateViewLayout(v, p); savePosition(label, p); true }
                 else -> true
             }
         }
-        wm.addView(v, p); views.add(v)
+        wm.addView(v, p); views.add(v); savePosition(label, p)
     }
-    override fun onDestroy() { views.forEach { runCatching { wm.removeView(it) } }; views.clear(); super.onDestroy() }
+    private fun savePosition(label: String, p: WindowManager.LayoutParams) {\n        val key = if (label == "TAP") "tap" else "detect"\n        getSharedPreferences("targets", MODE_PRIVATE).edit().putInt(key + "_x", p.x + 38).putInt(key + "_y", p.y + 38).apply()\n    }\n    override fun onDestroy() { views.forEach { runCatching { wm.removeView(it) } }; views.clear(); super.onDestroy() }
 }
