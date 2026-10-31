@@ -30,6 +30,13 @@ class ScreenMonitorService : Service() {
     private var busy = false
     private var previousMatch = false
     private var lastTap = 0L
+    private val projectionCallback = object : MediaProjection.Callback() {
+        override fun onStop() {
+            display?.release()
+            display = null
+            stopSelf()
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -51,8 +58,9 @@ class ScreenMonitorService : Service() {
         val dm = resources.displayMetrics
         val w = dm.widthPixels; val h = dm.heightPixels; val dpi = dm.densityDpi
         thread = HandlerThread("screen-reader").also { it.start() }; worker = Handler(thread!!.looper)
+        val activeProjection = projection ?: return
+        activeProjection.registerCallback(projectionCallback, worker!!)
         reader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 2)
-        display = projection?.createVirtualDisplay("JassAutoTapper", w, h, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader!!.surface, null, worker)
         reader?.setOnImageAvailableListener({ r ->
             val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
             if (busy) { image.close(); return@setOnImageAvailableListener }
@@ -85,8 +93,14 @@ class ScreenMonitorService : Service() {
                     .addOnCompleteListener { crop.recycle(); busy = false }
             } catch (_: Exception) { runCatching { image.close() }; busy = false }
         }, worker)
+        display = activeProjection.createVirtualDisplay(
+            "JassAutoTapper", w, h, dpi,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            reader!!.surface, null, worker
+        )
     }
     override fun onDestroy() {
+        runCatching { projection?.unregisterCallback(projectionCallback) }
         display?.release(); reader?.close(); projection?.stop(); thread?.quitSafely(); recognizer.close()
         super.onDestroy()
     }
