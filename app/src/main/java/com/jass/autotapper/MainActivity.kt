@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -392,12 +393,25 @@ class MainActivity : ComponentActivity() {
                         FilterChip(
                             selected = colorValue == choice.value,
                             onClick = { onColor(choice.value) },
-                            label = { Text(choice.name) }
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Box(Modifier.size(12.dp).background(Color(choice.value), CircleShape))
+                                    Text(choice.name)
+                                }
+                            }
                         )
                     }
                 }
                 Text("Shape", color = softText, fontSize = 12.sp)
-                ChoiceRow(listOf("circle", "rounded", "square"), shapeValue, onShape)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("Circle" to "circle", "Rounded" to "rounded", "Square" to "square").forEach { option ->
+                        FilterChip(
+                            selected = shapeValue == option.second,
+                            onClick = { onShape(option.second) },
+                            label = { Text(option.first) }
+                        )
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Size", color = softText, fontSize = 12.sp, modifier = Modifier.weight(1f))
                     Text("${sizeValue.toInt()} dp", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
