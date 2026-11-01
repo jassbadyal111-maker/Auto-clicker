@@ -59,7 +59,7 @@ class TargetOverlayService : Service() {
 
         val prefs = getSharedPreferences("targets", MODE_PRIVATE)
         addTarget("TAP", "tap", 0.28f, 0.55f)
-        addTarget("⌖", "detect", 0.72f, 0.55f)
+        addTarget("", "detect", 0.72f, 0.55f)
         addFloatingControl(prefs.getBoolean("control_running", false))
     }
 
