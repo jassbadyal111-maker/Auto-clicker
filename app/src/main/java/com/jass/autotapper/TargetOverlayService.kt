@@ -222,7 +222,7 @@ class TargetOverlayService : Service() {
 
     private fun makeOutline(color: Int, style: String, sizePx: Int) =
         GradientDrawable().apply {
-            this.shape = if (style == "circle") GradientDrawable.OVAL else GradientDrawable.RECTANGLE
+            setShape(if (style == "circle") GradientDrawable.OVAL else GradientDrawable.RECTANGLE)
             cornerRadius = if (style == "rounded") sizePx * 0.22f else 0f
             setColor(0x44303030)
             setStroke(dp(3), color)
