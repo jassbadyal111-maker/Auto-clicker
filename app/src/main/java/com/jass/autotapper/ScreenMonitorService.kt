@@ -149,9 +149,10 @@ class ScreenMonitorService : Service() {
                 val prefs = getSharedPreferences("targets", MODE_PRIVATE)
                 val centerX = prefs.getInt("detect_x", width * 72 / 100)
                 val centerY = prefs.getInt("detect_y", height * 55 / 100)
-                val circleSize = prefs.getInt("detect_size", 76)
-                // Read slightly beyond the guide ring, but never include its old "1" label.
-                val roiSize = (circleSize * 1.65f).toInt().coerceIn(96, 240)
+                val circleSizeDp = prefs.getInt("detect_size", 76)
+                // Overlay size is stored in dp; convert to captured-display pixels before cropping.
+                val circleSizePx = (circleSizeDp * metricsDensity()).toInt()
+                val roiSize = (circleSizePx * 1.65f).toInt().coerceIn(120, 420)
                 val left = (centerX - roiSize / 2).coerceIn(0, full.width - 1)
                 val top = (centerY - roiSize / 2).coerceIn(0, height - 1)
                 val cropWidth = roiSize.coerceAtMost(full.width - left)
@@ -224,6 +225,8 @@ class ScreenMonitorService : Service() {
             .apply()
         publishState("Smart detection running • looking for exact 1", true)
     }
+
+    private fun metricsDensity(): Float = resources.displayMetrics.density
 
     private fun publishState(message: String, running: Boolean) {
         getSharedPreferences("targets", MODE_PRIVATE).edit()
