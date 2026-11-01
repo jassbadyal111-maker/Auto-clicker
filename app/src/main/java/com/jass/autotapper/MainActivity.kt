@@ -396,7 +396,7 @@ class MainActivity : ComponentActivity() {
                             onClick = { onColor(choice.value) },
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Box(Modifier.size(12.dp).background(Color(choice.value), CircleShape))
+                                    Box(Modifier.size(12.dp).background(Color(choice.value.toLong()), CircleShape))
                                     Text(choice.name)
                                 }
                             }
