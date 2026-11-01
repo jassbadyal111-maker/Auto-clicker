@@ -37,6 +37,7 @@ class ScreenMonitorService : Service() {
     @Volatile private var paused = false
     private var previousMatch = false
     private var lastTap = 0L
+    private var lastScanStatusAt = 0L
 
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
@@ -168,7 +169,11 @@ class ScreenMonitorService : Service() {
                         }
                         if (!found) {
                             previousMatch = false
-                            publishState("Scanning target area…", !paused)
+                            val scanNow = System.currentTimeMillis()
+                            if (scanNow - lastScanStatusAt >= 1_500L) {
+                                lastScanStatusAt = scanNow
+                                publishState("Scanning target area…", !paused)
+                            }
                             return@addOnSuccessListener
                         }
 
