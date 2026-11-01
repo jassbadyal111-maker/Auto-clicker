@@ -30,7 +30,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DarkColorScheme
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -116,11 +115,13 @@ class MainActivity : ComponentActivity() {
             requestOverlayPermission()
             return
         }
+        getSharedPreferences("targets", MODE_PRIVATE).edit().putBoolean("overlay_visible", true).apply()
         startService(Intent(this, TargetOverlayService::class.java))
     }
 
     private fun refreshOverlays() {
         if (!hasOverlayPermission()) return
+        if (!getSharedPreferences("targets", MODE_PRIVATE).getBoolean("overlay_visible", false)) return
         startService(Intent(this, TargetOverlayService::class.java).setAction(TargetOverlayService.ACTION_REFRESH))
     }
 
@@ -164,6 +165,7 @@ class MainActivity : ComponentActivity() {
         stopService(Intent(this, ScreenMonitorService::class.java))
         stopService(Intent(this, TargetOverlayService::class.java))
         getSharedPreferences("targets", MODE_PRIVATE).edit()
+            .putBoolean("overlay_visible", false)
             .putBoolean("control_running", false)
             .putBoolean("control_paused", false)
             .putString("detector_status", "Stopped")
@@ -278,7 +280,8 @@ class MainActivity : ComponentActivity() {
                         sizeValue = tapSize,
                         onColor = { tapColor = it; prefs.edit().putInt("tap_color", it).apply(); refreshOverlays() },
                         onShape = { tapShape = it; prefs.edit().putString("tap_shape", it).apply(); refreshOverlays() },
-                        onSize = { tapSize = it; prefs.edit().putInt("tap_size", it.toInt()).apply(); refreshOverlays() }
+                        onSize = { tapSize = it },
+                        onSizeFinished = { prefs.edit().putInt("tap_size", tapSize.toInt()).apply(); refreshOverlays() }
                     )
                     CircleStylePanel(
                         title = "Detection target  •  Green",
@@ -287,7 +290,8 @@ class MainActivity : ComponentActivity() {
                         sizeValue = detectSize,
                         onColor = { detectColor = it; prefs.edit().putInt("detect_color", it).apply(); refreshOverlays() },
                         onShape = { detectShape = it; prefs.edit().putString("detect_shape", it).apply(); refreshOverlays() },
-                        onSize = { detectSize = it; prefs.edit().putInt("detect_size", it.toInt()).apply(); refreshOverlays() }
+                        onSize = { detectSize = it },
+                        onSizeFinished = { prefs.edit().putInt("detect_size", detectSize.toInt()).apply(); refreshOverlays() }
                     )
 
                     Button(
@@ -376,7 +380,8 @@ class MainActivity : ComponentActivity() {
         sizeValue: Float,
         onColor: (Int) -> Unit,
         onShape: (String) -> Unit,
-        onSize: (Float) -> Unit
+        onSize: (Float) -> Unit,
+        onSizeFinished: () -> Unit
     ) {
         Card(colors = CardDefaults.cardColors(containerColor = cardBg), shape = RoundedCornerShape(18.dp)) {
             Column(modifier = Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -397,7 +402,7 @@ class MainActivity : ComponentActivity() {
                     Text("Size", color = softText, fontSize = 12.sp, modifier = Modifier.weight(1f))
                     Text("${sizeValue.toInt()} dp", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                 }
-                Slider(value = sizeValue, onValueChange = onSize, valueRange = 56f..120f, steps = 7)
+                Slider(value = sizeValue, onValueChange = onSize, onValueChangeFinished = onSizeFinished, valueRange = 56f..120f, steps = 7)
             }
         }
     }
