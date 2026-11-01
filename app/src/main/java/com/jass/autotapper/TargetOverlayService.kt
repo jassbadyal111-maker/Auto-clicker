@@ -220,10 +220,10 @@ class TargetOverlayService : Service() {
         controlView?.alpha = if (running) 1f else 0.82f
     }
 
-    private fun makeOutline(color: Int, shape: String, sizePx: Int) =
+    private fun makeOutline(color: Int, style: String, sizePx: Int) =
         GradientDrawable().apply {
-            shape = if (shape == "circle") GradientDrawable.OVAL else GradientDrawable.RECTANGLE
-            cornerRadius = if (shape == "rounded") sizePx * 0.22f else 0f
+            this.shape = if (style == "circle") GradientDrawable.OVAL else GradientDrawable.RECTANGLE
+            cornerRadius = if (style == "rounded") sizePx * 0.22f else 0f
             setColor(0x44303030)
             setStroke(dp(3), color)
         }
